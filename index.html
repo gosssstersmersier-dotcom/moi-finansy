@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10251f">
+<meta name="description" content="Личный учёт доходов, расходов и накоплений в рублях">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Мои финансы</title>
+<style>
+:root{color-scheme:dark;--bg:#0d1714;--panel:#17241f;--panel2:#203129;--text:#f2f6f3;--muted:#a5b5ac;--green:#8de0ad;--red:#ff9b91;--line:#2b3c34}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#142820,#0d1714 45%);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+main{max-width:720px;margin:auto;padding:22px 16px 44px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:750;font-size:20px}.tag{color:var(--muted);font-size:12px}
+.balance{background:linear-gradient(135deg,#254a38,#18372b);border:1px solid #37634b;border-radius:24px;padding:22px;margin-bottom:14px}.label{font-size:13px;color:#c0d8c8}.amount{font-size:clamp(34px,9vw,48px);font-weight:800;letter-spacing:-1.5px;margin:8px 0 18px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#ffffff10;border-radius:15px;padding:12px}.stat small{display:block;color:#c0d8c8;margin-bottom:5px}.stat strong{font-size:18px}.positive{color:var(--green)}.negative{color:var(--red)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.btn{border:0;border-radius:14px;padding:14px 12px;font-size:15px;font-weight:700;cursor:pointer}.income{background:#b4f0c7;color:#10251a}.expense{background:#ffb7ad;color:#321411}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:17px;margin-top:14px}.cardhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}h2{font-size:17px;margin:0}.muted{color:var(--muted);font-size:13px}
+.goalrow{display:flex;justify-content:space-between;gap:12px;align-items:center}.progress{height:9px;background:#304239;border-radius:20px;overflow:hidden;margin:12px 0 6px}.bar{height:100%;background:var(--green);width:0}
+input,select{width:100%;background:#101b16;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;margin-top:6px}label{font-size:13px;color:var(--muted);display:block;margin-top:12px}
+form .btn{width:100%;margin-top:15px;background:var(--green);color:#10251a}
+.item{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}.itemname{font-weight:600}.itemmeta{font-size:12px;color:var(--muted);margin-top:3px}.itemval{font-weight:750;white-space:nowrap}
+.tabs{display:flex;gap:8px;margin-top:14px}.tab{flex:1;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px;border-radius:12px}.tab.active{border-color:var(--green);color:var(--green)}
+.hidden{display:none!important}.empty{text-align:center;color:var(--muted);padding:22px 4px}.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:20px;width:min(92%,480px);padding:20px}dialog::backdrop{background:#0009}.close{float:right;background:none;color:var(--text);border:0;font-size:22px}
+</style>
+</head>
+<body>
+<main>
+ <div class="top"><div><div class="brand">◈ Мои финансы</div><div class="tag">Личный бюджет · ₽</div></div><div class="tag" id="today"></div></div>
+ <section class="balance">
+  <div class="label">Мой баланс</div><div class="amount" id="balance">0 ₽</div>
+  <div class="stats">
+   <div class="stat"><small>Доходы</small><strong class="positive" id="incomeTotal">+0 ₽</strong></div>
+   <div class="stat"><small>Расходы</small><strong class="negative" id="expenseTotal">−0 ₽</strong></div>
+  </div>
+ </section>
+ <div class="actions"><button class="btn income" id="addIncome">＋ Доход</button><button class="btn expense" id="addExpense">− Расход</button></div>
+ <section class="card">
+  <div class="cardhead"><h2>Цель накоплений</h2><button class="tab" id="editGoal">Изменить</button></div>
+  <div class="goalrow"><strong id="goalName">Моя цель</strong><span class="muted" id="goalNumbers">0 / 50 000 ₽</span></div>
+  <div class="progress"><div class="bar" id="goalBar"></div></div><div class="muted" id="goalPercent">0% накоплено</div>
+ </section>
+ <div class="tabs"><button class="tab active" data-tab="all">Все</button><button class="tab" data-tab="income">Доходы</button><button class="tab" data-tab="expense">Расходы</button></div>
+ <section class="card"><div class="cardhead"><h2>История операций</h2><span class="muted" id="count">0 операций</span></div><div id="history"><div class="empty">Пока нет операций.<br>Добавь первый доход или расход.</div></div></section>
+ <div class="foot">Данные сохраняются в этом браузере на устройстве.<br>Сделай резервную копию, если меняешь телефон или браузер.</div>
+</main>
+<dialog id="entryDialog">
+ <button class="close" id="closeEntry">×</button><h2 id="formTitle">Новая операция</h2>
+ <form id="entryForm">
+  <label>Сумма, ₽<input id="sum" type="number" min="1" step="1" required placeholder="Например, 1500"></label>
+  <label>Категория<select id="category"><option>Зарплата</option><option>Подработка</option><option>Подарок</option><option>Еда</option><option>Транспорт</option><option>Покупки</option><option>Жильё</option><option>Развлечения</option><option>Другое</option></select></label>
+  <label>Комментарий<input id="note" maxlength="70" placeholder="Необязательно"></label>
+  <label>Дата<input id="date" type="date" required></label>
+  <button class="btn" type="submit">Сохранить операцию</button>
+ </form>
+</dialog>
+<dialog id="goalDialog">
+ <button class="close" id="closeGoal">×</button><h2>Цель накоплений</h2>
+ <form id="goalForm"><label>Название<input id="gname" maxlength="35" required></label><label>Сумма цели, ₽<input id="gtarget" type="number" min="1" required></label><label>Уже накоплено, ₽<input id="gsaved" type="number" min="0" required></label><button class="btn">Сохранить цель</button></form>
+</dialog>
+<script>
+const KEY='moi-finansy-v1';let data=JSON.parse(localStorage.getItem(KEY)||'null')||{items:[],goal:{name:'Моя цель',target:50000,saved:0}},mode='income',filter='all';
+const $=id=>document.getElementById(id),rub=n=>new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(n)+' ₽';
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function render(){
+ const inc=data.items.filter(x=>x.type==='income').reduce((a,x)=>a+x.sum,0),exp=data.items.filter(x=>x.type==='expense').reduce((a,x)=>a+x.sum,0);
+ $('balance').textContent=rub(inc-exp);$('incomeTotal').textContent='+'+rub(inc);$('expenseTotal').textContent='−'+rub(exp);
+ const g=data.goal,p=g.target?Math.min(100,Math.round(g.saved/g.target*100)):0;$('goalName').textContent=g.name;$('goalNumbers').textContent=rub(g.saved)+' / '+rub(g.target);$('goalBar').style.width=p+'%';$('goalPercent').textContent=p+'% накоплено';
+ const list=data.items.filter(x=>filter==='all'||x.type===filter).slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);$('count').textContent=list.length+' операций';
+ $('history').innerHTML=list.length?list.map(x=>`<div class="item"><div><div class="itemname">${esc(x.category)}${x.note?' · '+esc(x.note):''}</div><div class="itemmeta">${new Date(x.date+'T12:00:00').toLocaleDateString('ru-RU')}</div></div><div class="itemval ${x.type==='income'?'positive':'negative'}">${x.type==='income'?'+':'−'}${rub(x.sum)}<br><button data-del="${x.id}" class="muted" style="background:none;border:0;color:var(--muted);padding:4px 0">Удалить</button></div></div>`).join(''):'<div class="empty">Нет операций в этом разделе.</div>';
+ document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(confirm('Удалить эту операцию?')){data.items=data.items.filter(x=>x.id!=b.dataset.del);save()}});
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function openEntry(t){mode=t;$('formTitle').textContent=t==='income'?'Добавить доход':'Добавить расход';$('date').value=new Date().toISOString().slice(0,10);$('entryDialog').showModal()}
+$('addIncome').onclick=()=>openEntry('income');$('addExpense').onclick=()=>openEntry('expense');$('closeEntry').onclick=()=>$('entryDialog').close();
+$('entryForm').onsubmit=e=>{e.preventDefault();data.items.push({id:Date.now(),type:mode,sum:Number($('sum').value),category:$('category').value,note:$('note').value.trim(),date:$('date').value});e.target.reset();$('entryDialog').close();save()};
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{filter=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('editGoal').onclick=()=>{$('gname').value=data.goal.name;$('gtarget').value=data.goal.target;$('gsaved').value=data.goal.saved;$('goalDialog').showModal()};
+$('closeGoal').onclick=()=>$('goalDialog').close();$('goalForm').onsubmit=e=>{e.preventDefault();data.goal={name:$('gname').value.trim(),target:Number($('gtarget').value),saved:Number($('gsaved').value)};$('goalDialog').close();save()};
+$('today').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'short'});render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
